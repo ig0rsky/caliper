@@ -196,6 +196,22 @@ class Client {
     async _startLocalTest(message, clientArgs) {
         message.totalClients = this.number;
         let res = await clientUtil.startTest(this.number, message, clientArgs, this.updates.data, this.results);
+        // logger.info('results:', JSON.stringify(this.results, null, 2));
+        let fs = require('fs');
+        let path = require('path');
+        let result_path = path.join(process.cwd(), 'transaction_results.json');
+        let update_path = path.join(process.cwd(), 'transaction_updates.json');
+        fs.appendFile(result_path, JSON.stringify(this.results, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+        fs.appendFile(update_path, JSON.stringify(this.updates.data, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+
         // logger.info('updates data:', JSON.stringify(this.updates.data, null, 2));
         return res;
     }
