@@ -11,14 +11,14 @@
 const cfUtil = require('../config-util.js');
 const Util = require('../util.js');
 let logger = Util.getLogger('local-client.js');
-const bc   = require('../blockchain.js');
+const bc = require('../blockchain.js');
 const RateControl = require('../rate-control/rateControl.js');
 
 let blockchain;
-let results      = [];
-let txNum        = 0;
-let txLastNum    = 0;
-let resultStats  = [];
+let results = [];
+let txNum = 0;
+let txLastNum = 0;
+let resultStats = [];
 //let txUpdateTime = 1000;
 let trimType = 0;
 let trim = 0;
@@ -34,39 +34,39 @@ function txUpdate() {
 
     let newResults = results.slice(0);
     results = [];
-    if(newResults.length === 0 && newNum === 0) {
+    if (newResults.length === 0 && newNum === 0) {
         return;
     }
 
     let newStats;
-    if(newResults.length === 0) {
+    if (newResults.length === 0) {
         newStats = bc.createNullDefaultTxStats();
     }
     else {
         newStats = blockchain.getDefaultTxStats(newResults, false);
     }
-    process.send({type: 'txUpdated', data: {submitted: newNum, committed: newStats}});
+    process.send({ type: 'txUpdated', data: { submitted: newNum, committed: newStats } });
 
     if (resultStats.length === 0) {
         switch (trimType) {
-        case 0: // no trim
-            resultStats[0] = newStats;
-            break;
-        case 1: // based on duration
-            if (trim < (Date.now() - startTime)/1000) {
+            case 0: // no trim
                 resultStats[0] = newStats;
-            }
-            break;
-        case 2: // based on number
-            if (trim < newResults.length) {
-                newResults = newResults.slice(trim);
-                newStats = blockchain.getDefaultTxStats(newResults, false);
-                resultStats[0] = newStats;
-                trim = 0;
-            } else {
-                trim -= newResults.length;
-            }
-            break;
+                break;
+            case 1: // based on duration
+                if (trim < (Date.now() - startTime) / 1000) {
+                    resultStats[0] = newStats;
+                }
+                break;
+            case 2: // based on number
+                if (trim < newResults.length) {
+                    newResults = newResults.slice(trim);
+                    newStats = blockchain.getDefaultTxStats(newResults, false);
+                    resultStats[0] = newStats;
+                    trim = 0;
+                } else {
+                    trim -= newResults.length;
+                }
+                break;
         }
     } else {
         resultStats[1] = newStats;
@@ -79,8 +79,8 @@ function txUpdate() {
  * @param {Object} result test result, should be an array or a single JSON object
  */
 function addResult(result) {
-    if(Array.isArray(result)) { // contain multiple results
-        for(let i = 0 ; i < result.length ; i++) {
+    if (Array.isArray(result)) { // contain multiple results
+        for (let i = 0; i < result.length; i++) {
             results.push(result[i]);
         }
     }
@@ -94,7 +94,7 @@ function addResult(result) {
  * @param {JSON} msg start test message
  */
 function beforeTest(msg) {
-    results  = [];
+    results = [];
     resultStats = [];
     txNum = 0;
     txLastNum = 0;
@@ -128,7 +128,7 @@ function submitCallback(count) {
  * @return {Promise} promise object
  */
 async function runFixedNumber(msg, cb, context) {
-    logger.debug('Info: client ' + process.pid +  ' start test runFixedNumber()' + (cb.info ? (':' + cb.info) : ''));
+    logger.debug('Info: client ' + process.pid + ' start test runFixedNumber()' + (cb.info ? (':' + cb.info) : ''));
     let rateControl = new RateControl(msg.rateControl, msg.clientIdx, msg.roundIdx);
     await rateControl.init(msg);
 
@@ -136,7 +136,7 @@ async function runFixedNumber(msg, cb, context) {
     startTime = Date.now();
 
     let promises = [];
-    while(txNum < msg.numb) {
+    while (txNum < msg.numb) {
         promises.push(cb.run().then((result) => {
             addResult(result);
             return Promise.resolve();
@@ -157,7 +157,7 @@ async function runFixedNumber(msg, cb, context) {
  * @return {Promise} promise object
  */
 async function runDuration(msg, cb, context) {
-    logger.debug('Info: client ' + process.pid +  ' start test runDuration()' + (cb.info ? (':' + cb.info) : ''));
+    logger.debug('Info: client ' + process.pid + ' start test runDuration()' + (cb.info ? (':' + cb.info) : ''));
     let rateControl = new RateControl(msg.rateControl, msg.clientIdx, msg.roundIdx);
     await rateControl.init(msg);
     const duration = msg.txDuration; // duration in seconds
@@ -166,7 +166,7 @@ async function runDuration(msg, cb, context) {
     startTime = Date.now();
 
     let promises = [];
-    while ((Date.now() - startTime)/1000 < duration) {
+    while ((Date.now() - startTime) / 1000 < duration) {
         promises.push(cb.run().then((result) => {
             addResult(result);
             return Promise.resolve();
@@ -199,7 +199,7 @@ async function doTest(msg) {
      */
     let clearUpdateInter = function () {
         // stop reporter
-        if(txUpdateInter) {
+        if (txUpdateInter) {
             clearInterval(txUpdateInter);
             txUpdateInter = null;
             txUpdate();
@@ -208,16 +208,16 @@ async function doTest(msg) {
 
     try {
         let context = await blockchain.getContext(msg.label, msg.clientargs, msg.clientIdx, msg.txFile);
-        if(typeof context === 'undefined') {
+        if (typeof context === 'undefined') {
             context = {
-                engine : {
-                    submitCallback : submitCallback
+                engine: {
+                    submitCallback: submitCallback
                 }
             };
         }
         else {
             context.engine = {
-                submitCallback : submitCallback
+                submitCallback: submitCallback
             };
         }
 
@@ -248,24 +248,24 @@ async function doTest(msg) {
  */
 process.on('message', async (message) => {
     if (!message.hasOwnProperty('type')) {
-        process.send({type: 'error', data: 'unknown message type'});
+        process.send({ type: 'error', data: 'unknown message type' });
         return;
     }
 
     try {
         switch (message.type) {
-        case 'test': {
-            let result = await doTest(message);
-            await Util.sleep(200);
-            process.send({type: 'testResult', data: result});
-            break;
-        }
-        default: {
-            process.send({type: 'error', data: 'unknown message type'});
-        }
+            case 'test': {
+                let result = await doTest(message);
+                await Util.sleep(200);
+                process.send({ type: 'testResult', data: result });
+                break;
+            }
+            default: {
+                process.send({ type: 'error', data: 'unknown message type' });
+            }
         }
     }
     catch (err) {
-        process.send({type: 'error', data: err.toString()});
+        process.send({ type: 'error', data: err.toString() });
     }
 });

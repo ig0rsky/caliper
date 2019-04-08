@@ -7,14 +7,14 @@
 
 'use strict';
 
-module.exports.info  = 'small_bank_operations';
+module.exports.info = 'small_bank_operations';
 
 let bc, contx;
 let no_accounts = 0;
 let account_array = [];
 let accounts, txnPerBatch;
 const initial_balance = 1000000;
-const operation_type = ['transact_savings','deposit_checking','send_payment','write_check', 'amalgamate'];
+const operation_type = ['transact_savings', 'deposit_checking', 'send_payment', 'write_check', 'amalgamate'];
 let prefix;
 
 /**
@@ -22,7 +22,7 @@ let prefix;
  * @return {Number} index
  */
 function getAccount() {
-    return Math.floor(Math.random()*Math.floor(account_array.length));
+    return Math.floor(Math.random() * Math.floor(account_array.length));
 }
 
 /**
@@ -32,7 +32,7 @@ function getAccount() {
 function get2Accounts() {
     let idx1 = getAccount();
     let idx2 = getAccount();
-    if(idx2 === idx1) {
+    if (idx2 === idx1) {
         idx2 = getAccount();
     }
     return [idx1, idx2];
@@ -44,10 +44,10 @@ function get2Accounts() {
  **/
 function generateAccount() {
     // should be [a-z]{1,9}
-    if(typeof prefix === 'undefined') {
+    if (typeof prefix === 'undefined') {
         prefix = process.pid;
     }
-    let count = account_array.length+1;
+    let count = account_array.length + 1;
     let num = prefix.toString() + count.toString();
     return parseInt(num);
 }
@@ -74,7 +74,7 @@ function random_string() {
  **/
 function generateWorkload() {
     let workload = [];
-    for(let i= 0; (i < txnPerBatch && no_accounts < accounts); i++,no_accounts++) {
+    for (let i = 0; (i < txnPerBatch && no_accounts < accounts); i++ , no_accounts++) {
         let acc_id = generateAccount();
         account_array.push(acc_id);
         let acc = {
@@ -86,75 +86,75 @@ function generateWorkload() {
         };
         workload.push(acc);
     }
-    for(let j= workload.length; j<txnPerBatch; j++) {
-        let op_index =  Math.floor(Math.random() * Math.floor(operation_type.length));
+    for (let j = workload.length; j < txnPerBatch; j++) {
+        let op_index = Math.floor(Math.random() * Math.floor(operation_type.length));
         let acc_index = getAccount();
         let random_op = operation_type[op_index];
         let random_acc = account_array[acc_index];
         let amount = Math.floor(Math.random() * 200);
         let op_payload;
-        switch(random_op) {
-        case 'transact_savings': {
-            op_payload = {
-                'amount': amount,
-                'customer_id': random_acc,
-                'transaction_type':random_op
-            };
-            break;
-        }
-        case 'deposit_checking': {
-            op_payload = {
-                'amount': amount,
-                'customer_id': random_acc,
-                'transaction_type':random_op
-            };
-            break;
-        }
-        case 'send_payment': {
-            let accounts = get2Accounts();
-            op_payload = {
-                'amount': amount,
-                'dest_customer_id': account_array[accounts[0]],
-                'source_customer_id': account_array[accounts[1]],
-                'transaction_type': random_op
-            };
-            break;
-        }
-        case 'write_check': {
-            op_payload = {
-                'amount': amount,
-                'customer_id': random_acc,
-                'transaction_type':random_op
-            };
-            break;
-        }
-        case 'amalgamate': {
-            let accounts = get2Accounts();
-            op_payload = {
-                'dest_customer_id': account_array[accounts[0]],
-                'source_customer_id': account_array[accounts[1]],
-                'transaction_type': random_op
-            };
-            break;
-        }
-        default: {
-            throw new Error('Invalid operation!!!');
-        }
+        switch (random_op) {
+            case 'transact_savings': {
+                op_payload = {
+                    'amount': amount,
+                    'customer_id': random_acc,
+                    'transaction_type': random_op
+                };
+                break;
+            }
+            case 'deposit_checking': {
+                op_payload = {
+                    'amount': amount,
+                    'customer_id': random_acc,
+                    'transaction_type': random_op
+                };
+                break;
+            }
+            case 'send_payment': {
+                let accounts = get2Accounts();
+                op_payload = {
+                    'amount': amount,
+                    'dest_customer_id': account_array[accounts[0]],
+                    'source_customer_id': account_array[accounts[1]],
+                    'transaction_type': random_op
+                };
+                break;
+            }
+            case 'write_check': {
+                op_payload = {
+                    'amount': amount,
+                    'customer_id': random_acc,
+                    'transaction_type': random_op
+                };
+                break;
+            }
+            case 'amalgamate': {
+                let accounts = get2Accounts();
+                op_payload = {
+                    'dest_customer_id': account_array[accounts[0]],
+                    'source_customer_id': account_array[accounts[1]],
+                    'transaction_type': random_op
+                };
+                break;
+            }
+            default: {
+                throw new Error('Invalid operation!!!');
+            }
         }
         workload.push(op_payload);
     }
     return workload;
 }
 
-module.exports.init = function(blockchain, context, args) {
-    if(!args.hasOwnProperty('accounts')) {
+module.exports.init = function (blockchain, context, args) {
+    if (!args.hasOwnProperty('accounts')) {
         return Promise.reject(new Error('smallbank.operations - \'accounts\' is missed in the arguments'));
     }
-    if(!args.hasOwnProperty('txnPerBatch')) {
+    if (!args.hasOwnProperty('txnPerBatch')) {
         return Promise.reject(new Error('smallbank.operations - \'txnPerBatch\' is missed in the arguments'));
     }
     accounts = args.accounts;
-    if(accounts <= 3) {
+    if (accounts <= 3) {
         return Promise.reject(new Error('smallbank.operations - number accounts should be more than 3'));
     }
     txnPerBatch = args.txnPerBatch;
@@ -164,15 +164,17 @@ module.exports.init = function(blockchain, context, args) {
     return Promise.resolve();
 };
 
-module.exports.run = function() {
+module.exports.run = function () {
     let args = generateWorkload();
 
     // rearrange arguments for the Fabric adapter
     if (bc.bcType === 'fabric-ccp') {
         let ccpArgs = [];
         for (let arg of args) {
-            let functionArgs = Object.values(arg);
-            functionArgs.pop(); // remove the transaction_type value from the end
+            // let functionArgs = Object.values(arg);
+            // functionArgs.pop(); // remove the transaction_type value from the end
+            let tempArgs = Object.values(arg);
+            let functionArgs = [tempArgs[0].toString(), tempArgs[1].toString(), tempArgs[2].toString(), tempArgs[3].toString()];
 
             ccpArgs.push({
                 chaincodeFunction: arg.transaction_type,
@@ -182,11 +184,26 @@ module.exports.run = function() {
 
         args = ccpArgs;
     }
+    let fs = require('fs');
+    let path = require('path');
+    const util = require('../../src/comm/util');
+    const logger = util.getLogger('query.js');
+    let txStatusPromise = bc.invokeSmartContract(contx, 'smallbank', '1.0', args, 30);
+    let outputJson = path.join(process.cwd(), 'smallbank_ops_tx.json');
+    txStatusPromise.then((txStatuses) => {
+        fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+    }).catch((error) => {
+        logger.info(error);
+    })
+    return txStatusPromise;
 
-    return bc.invokeSmartContract(contx, 'smallbank', '1.0', args, 30);
 };
 
-module.exports.end = function() {
+module.exports.end = function () {
     return Promise.resolve();
 };
 

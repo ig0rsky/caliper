@@ -14,8 +14,8 @@
  * @return {String} returned string
  */
 function stringify(value) {
-    if(typeof value === 'object'){
-        if(Array.isArray(value)) {
+    if (typeof value === 'object') {
+        if (Array.isArray(value)) {
             return value.toString();
         }
         else {
@@ -26,7 +26,6 @@ function stringify(value) {
         return value;
     }
 }
-
 /**
  * Report class for generating test report
  */
@@ -38,10 +37,10 @@ class Report {
         const path = require('path');
         this.template = path.join(__dirname, 'template/report.html');
         this.data = {
-            'summary' : {       // summary of benchmark result
-                'meta' : [],    // information of the summary, e.g. [{"name": "DLT Type", "value": "Fabric"}, {"name": "Benchmark", "value": "Simple"}...]
-                'head' : [],    // table head for the summary table, e.g. ["Test","Name","Succ","Fail","Send Rate","Max Delay","Min Delay", "Avg Delay", "Throughput"],
-                'results':[]   // table rows for the summary table, e.g. [{ "result": [0,"publish", 1,0,"1 tps", "10.78 s","10.78 s", "10.78 s", "1 tps"]},...]
+            'summary': {       // summary of benchmark result
+                'meta': [],    // information of the summary, e.g. [{"name": "DLT Type", "value": "Fabric"}, {"name": "Benchmark", "value": "Simple"}...]
+                'head': [],    // table head for the summary table, e.g. ["Test","Name","Succ","Fail","Send Rate","Max Delay","Min Delay", "Avg Delay", "Throughput"],
+                'results': []   // table rows for the summary table, e.g. [{ "result": [0,"publish", 1,0,"1 tps", "10.78 s","10.78 s", "10.78 s", "1 tps"]},...]
             },
             // results of each rounds, e.g
             // [{
@@ -63,11 +62,11 @@ class Report {
             //       ]
             //     }
             //   }
-            'tests' : [],
+            'tests': [],
             'benchmarkInfo': 'not provided',   // readable information for the benchmark
             'sut': {
-                'meta' : [],                    // metadata of the SUT
-                'details' : 'not provided'     // details of the SUT
+                'meta': [],                    // metadata of the SUT
+                'details': 'not provided'     // details of the SUT
             }
         };
         this.started = false;
@@ -81,7 +80,7 @@ class Report {
     * @param {String} value value of the metadata
     */
     addMetadata(name, value) {
-        this.data.summary.meta.push({'name': name, 'value': value});
+        this.data.summary.meta.push({ 'name': name, 'value': value });
     }
 
     /**
@@ -95,16 +94,16 @@ class Report {
     * @param {Array} table array containing rows of a table, each row is also an array
     */
     setSummaryTable(table) {
-        if(!Array.isArray(table) || table.length < 1) {
+        if (!Array.isArray(table) || table.length < 1) {
             throw new Error('unrecognized report table');
         }
 
         this.data.summary.head = table[0];
-        for(let i = 1 ; i < table.length ; i++) {
-            if(!Array.isArray(table)) {
+        for (let i = 1; i < table.length; i++) {
+            if (!Array.isArray(table)) {
                 throw new Error('unrecognized report table');
             }
-            this.data.summary.results.push({'result' : table[i]});
+            this.data.summary.results.push({ 'result': table[i] });
         }
     }
 
@@ -113,10 +112,10 @@ class Report {
     * @param {Array} row elements of the row
     */
     addSummarytableRow(row) {
-        if(!Array.isArray(row) || row.length < 1) {
+        if (!Array.isArray(row) || row.length < 1) {
             throw new Error('unrecognized report row');
         }
-        this.data.summary.results.push({'result' : row});
+        this.data.summary.results.push({ 'result': row });
     }
 
     /**
@@ -127,8 +126,8 @@ class Report {
     addBenchmarkRound(label) {
         let index;
         let exists = false;
-        for (let i=0; i<this.data.tests.length; i++) {
-            if (this.data.tests[i].label.localeCompare(label) === 0){
+        for (let i = 0; i < this.data.tests.length; i++) {
+            if (this.data.tests[i].label.localeCompare(label) === 0) {
                 // Label test container exists
                 exists = true;
                 index = i;
@@ -139,20 +138,20 @@ class Report {
             // Add the next round at the index point
             const id = this.data.tests[index].rounds.length;
             this.data.tests[index].rounds.push({
-                'id' : 'round ' + id,
-                'performance' : {'head':[], 'result': []},
-                'resource' : {'head':[], 'results': []}
+                'id': 'round ' + id,
+                'performance': { 'head': [], 'result': [] },
+                'resource': { 'head': [], 'results': [] }
             });
             return id;
         } else {
             // New item
             this.data.tests.push({
-                'description' : this.descriptionmap.get(label),
-                'label' : label,
+                'description': this.descriptionmap.get(label),
+                'label': label,
                 'rounds': [{
-                    'id' : 'round 0',
-                    'performance' : {'head':[], 'result': []},
-                    'resource' : {'head':[], 'results': []}
+                    'id': 'round 0',
+                    'performance': { 'head': [], 'result': [] },
+                    'resource': { 'head': [], 'results': [] }
                 }]
             });
             return 0;
@@ -169,28 +168,27 @@ class Report {
 
         let index;
         let exists = false;
-        for (let i=0; i<this.data.tests.length; i++) {
-            if (this.data.tests[i].label.localeCompare(label) === 0){
+        for (let i = 0; i < this.data.tests.length; i++) {
+            if (this.data.tests[i].label.localeCompare(label) === 0) {
                 // Label test container exists
                 exists = true;
                 index = i;
             }
         }
 
-        if (!exists){
+        if (!exists) {
             throw new Error('Non-existing report test label passed');
         }
 
-        if(id < 0 || id >= this.data.tests[index].rounds.length) {
+        if (id < 0 || id >= this.data.tests[index].rounds.length) {
             throw new Error('unrecognized report id');
         }
-        if(!Array.isArray(table) || table.length < 1) {
+        if (!Array.isArray(table) || table.length < 1) {
             throw new Error('unrecognized report table');
         }
 
         this.data.tests[index].rounds[id].performance.head = table[0];
-        if(table.length > 1)
-        {
+        if (table.length > 1) {
             this.data.tests[index].rounds[id].performance.result = table[1];
         }
     }
@@ -204,31 +202,31 @@ class Report {
     setRoundResource(label, id, table) {
         let index;
         let exists = false;
-        for (let i=0; i<this.data.tests.length; i++) {
-            if (this.data.tests[i].label.localeCompare(label) === 0){
+        for (let i = 0; i < this.data.tests.length; i++) {
+            if (this.data.tests[i].label.localeCompare(label) === 0) {
                 // Label test container exists
                 exists = true;
                 index = i;
             }
         }
 
-        if (!exists){
+        if (!exists) {
             throw new Error('Non-existing report test label passed');
         }
 
-        if(id < 0 || id >= this.data.tests[index].rounds.length) {
+        if (id < 0 || id >= this.data.tests[index].rounds.length) {
             throw new Error('unrecognized report id');
         }
-        if(!Array.isArray(table) || table.length < 1) {
+        if (!Array.isArray(table) || table.length < 1) {
             throw new Error('unrecognized report table');
         }
 
         this.data.tests[index].rounds[id].resource.head = table[0];
-        for(let i = 1 ; i < table.length ; i++) {
-            if(!Array.isArray(table)) {
+        for (let i = 1; i < table.length; i++) {
+            if (!Array.isArray(table)) {
                 throw new Error('unrecognized report table');
             }
-            this.data.tests[index].rounds[id].resource.results.push({'result' : table[i]});
+            this.data.tests[index].rounds[id].resource.results.push({ 'result': table[i] });
         }
     }
 
@@ -246,26 +244,32 @@ class Report {
     * @param {Object} value value of the metadata
     */
     addSUTInfo(name, value) {
-        if(name === 'details') {
+        if (name === 'details') {
             this.data.sut.details = stringify(value);
         }
         else {
-            this.data.sut.meta.push({'name': name, 'value': stringify(value)});
+            this.data.sut.meta.push({ 'name': name, 'value': stringify(value) });
         }
     }
 
     /**
     * generate a HTML report for the benchmark
     * @param {String} output filename of the output
+    * @param {Boolean} jsonFlag json flag to generate a json report as well
     * @return {Promise} promise object
     */
-    generate(output) {
+    generate(output, jsonFlag) {
         return new Promise((resolve, reject) => {
             let fs = require('fs');
             let Mustache = require('mustache');
             let templateStr = fs.readFileSync(this.template).toString();
-            let html = Mustache.render(templateStr, this.data);
-            fs.writeFile(output, html, (error) => {
+            let report;
+            if (jsonFlag) {
+                report = JSON.stringify(this.data);
+            } else {
+                report = Mustache.render(templateStr, this.data);
+            }
+            fs.writeFile(output, report, (error) => {
                 if (error) {
                     reject(error);
                 } else {
@@ -279,10 +283,10 @@ class Report {
      * Generate a label - descrition map
      * @param {Object} rounds the test rounds from teh yaml config file
      */
-    addLabelDescriptionMap(rounds){
+    addLabelDescriptionMap(rounds) {
         const descriptionmap = new Map();
-        for(let i = 0 ; i < rounds.length ; i++) {
-            if(rounds[i].hasOwnProperty('description')) {
+        for (let i = 0; i < rounds.length; i++) {
+            if (rounds[i].hasOwnProperty('description')) {
                 descriptionmap.set(rounds[i].label, rounds[i].description);
             }
         }

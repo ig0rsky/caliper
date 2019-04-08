@@ -11,7 +11,7 @@ const logger = require('../util.js').getLogger('client-util.js');
 const path = require('path');
 const childProcess = require('child_process');
 
-let processes  = {}; // {pid:{obj, promise}}
+let processes = {}; // {pid:{obj, promise}}
 
 /**
  * Call the Promise function for a process
@@ -21,8 +21,8 @@ let processes  = {}; // {pid:{obj, promise}}
  */
 function setPromise(pid, isResolve, msg) {
     let p = processes[pid];
-    if(p && p.promise && typeof p.promise !== 'undefined') {
-        if(isResolve) {
+    if (p && p.promise && typeof p.promise !== 'undefined') {
+        if (isResolve) {
             p.promise.resolve(msg);
         }
         else {
@@ -38,7 +38,7 @@ function setPromise(pid, isResolve, msg) {
  */
 function pushResult(pid, data) {
     let p = processes[pid];
-    if(p && p.results && typeof p.results !== 'undefined') {
+    if (p && p.results && typeof p.results !== 'undefined') {
         p.results.push(data);
     }
 }
@@ -50,7 +50,7 @@ function pushResult(pid, data) {
  */
 function pushUpdate(pid, data) {
     let p = processes[pid];
-    if(p && p.updates && typeof p.updates !== 'undefined') {
+    if (p && p.updates && typeof p.updates !== 'undefined') {
         p.updates.push(data);
     }
 }
@@ -62,27 +62,27 @@ function pushUpdate(pid, data) {
  */
 function launchClient(updates, results) {
     let child = childProcess.fork(path.join(__dirname, 'local-client.js'));
-    let pid   = child.pid.toString();
-    processes[pid] = {obj: child, results: results, updates: updates};
+    let pid = child.pid.toString();
+    processes[pid] = { obj: child, results: results, updates: updates };
 
-    child.on('message', function(msg) {
-        if(msg.type === 'testResult') {
+    child.on('message', function (msg) {
+        if (msg.type === 'testResult') {
             pushResult(pid, msg.data);
             setPromise(pid, true, null);
         }
-        else if(msg.type === 'error') {
+        else if (msg.type === 'error') {
             setPromise(pid, false, new Error('Client encountered error:' + msg.data));
         }
-        else if(msg.type === 'txUpdated') {
+        else if (msg.type === 'txUpdated') {
             pushUpdate(pid, msg.data);
         }
     });
 
-    child.on('error', function(){
+    child.on('error', function () {
         setPromise(pid, false, new Error('Client encountered unexpected error'));
     });
 
-    child.on('exit', function(code, signal){
+    child.on('exit', function (code, signal) {
         logger.info('Client exited ');
         setPromise(pid, false, new Error('Client already exited'));
     });
@@ -99,7 +99,7 @@ function launchClient(updates, results) {
  */
 async function startTest(number, message, clientArgs, updates, results) {
     let count = 0;
-    for(let i in processes) {
+    for (let i in processes) {
         i;  // avoid eslint error
         count++;
     }
@@ -107,7 +107,7 @@ async function startTest(number, message, clientArgs, updates, results) {
     if (count !== number) {
         // launch clients
         processes = {};
-        for(let i = 0 ; i < number ; i++) {
+        for (let i = 0; i < number; i++) {
             launchClient(updates, results);
         }
     }
@@ -116,14 +116,14 @@ async function startTest(number, message, clientArgs, updates, results) {
     let totalTx = message.numb;
     if (message.numb) {
         // Run specified number of transactions
-        txPerClient  = Math.floor(message.numb / number);
+        txPerClient = Math.floor(message.numb / number);
 
         // trim should be based on client number if specified with txNumber
         if (message.trim) {
             message.trim = Math.floor(message.trim / number);
         }
 
-        if(txPerClient < 1) {
+        if (txPerClient < 1) {
             txPerClient = 1;
         }
         message.numb = txPerClient;
@@ -139,12 +139,12 @@ async function startTest(number, message, clientArgs, updates, results) {
 
     let promises = [];
     let idx = 0;
-    for(let id in processes) {
+    for (let id in processes) {
         let client = processes[id];
         let p = new Promise((resolve, reject) => {
             client.promise = {
                 resolve: resolve,
-                reject:  reject
+                reject: reject
             };
         });
         promises.push(p);
@@ -153,8 +153,8 @@ async function startTest(number, message, clientArgs, updates, results) {
         message.clientargs = clientArgs[idx];
         message.clientIdx = idx;
 
-        if(totalTx % number !== 0 && idx === number-1){
-            message.numb = totalTx - txPerClient*(number - 1);
+        if (totalTx % number !== 0 && idx === number - 1) {
+            message.numb = totalTx - txPerClient * (number - 1);
         }
 
         // send message to client and update idx
@@ -164,7 +164,7 @@ async function startTest(number, message, clientArgs, updates, results) {
 
     await Promise.all(promises);
     // clear promises
-    for(let client in processes) {
+    for (let client in processes) {
         delete client.promise;
     }
 }
@@ -176,7 +176,7 @@ module.exports.startTest = startTest;
  * @return {Number} number of child processes
  */
 function sendMessage(message) {
-    for(let pid in processes) {
+    for (let pid in processes) {
         processes[pid].obj.send(message);
     }
     return processes.length;
@@ -187,7 +187,7 @@ module.exports.sendMessage = sendMessage;
  * Stop all test clients(child processes)
  */
 function stop() {
-    for(let pid in processes) {
+    for (let pid in processes) {
         processes[pid].obj.kill();
     }
     processes = {};

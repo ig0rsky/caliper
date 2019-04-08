@@ -8,7 +8,7 @@ test:
   rounds:
   - label: smallOperations
     txNumber:
-    - 500
+    - 100
     rateControl:
     - type: fixed-rate
       opts:
@@ -19,7 +19,7 @@ test:
     callback: benchmark/smallbank/smallbankOperations.js
   - label: query
     txNumber:
-    - 500
+    - 100
     rateControl:
     - type: fixed-rate
       opts:

@@ -6,21 +6,21 @@ core:
     skipEndScript: false
 
     logging:
-      consolelogger:
-        target: console
-        level: info
-      filelogger:
-        target: daily-rotate-file
-        level: debug
-        filename: log/caliper-%DATE%.log
-        datePattern: YYYY-MM-DD-HH
-        maxSize: 5m
-        zippedArchive: true
+        consolelogger:
+            target: console
+            level: info
+        filelogger:
+            target: daily-rotate-file
+            level: debug
+            filename: log/caliper-%DATE%.log
+            datePattern: YYYY-MM-DD-HH
+            maxSize: 5m
+            zippedArchive: true
 fabricCcp:
     sleepAfter:
-        createChannel: 5000
-        joinChannel: 5000
-        instantiateChaincode: 5000
+        createChannel: 3000
+        joinChannel: 3000
+        instantiateChaincode: 3000
     verify:
         proposalResponse: false
         readWriteSets: true
@@ -34,5 +34,3 @@ fabricCcp:
     countQueryAsLoad: true
 fabric:
 sawtooth:
-
-

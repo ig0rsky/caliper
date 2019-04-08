@@ -9,9 +9,9 @@
 'use strict';
 
 const CLIENT_LOCAL = 'local';
-const CLIENT_ZOO   = 'zookeeper';
+const CLIENT_ZOO = 'zookeeper';
 
-const zkUtil  = require('./zoo-util.js');
+const zkUtil = require('./zoo-util.js');
 const ZooKeeper = require('node-zookeeper-client');
 const clientUtil = require('./client-util.js');
 
@@ -27,25 +27,25 @@ const logger = util.getLogger('client.js');
  * @return {Promise} boolean value that indicates whether the test of corresponding client has already stopped
  */
 function zooMessageCallback(data, updates, results) {
-    let msg  = JSON.parse(data.toString());
+    let msg = JSON.parse(data.toString());
     let stop = false;
-    switch(msg.type) {
-    case 'testResult':
-        results.push(msg.data);
-        stop = true;   // stop watching
-        break;
-    case 'error':
-        logger.error('Client encountered error, ' + msg.data);
-        stop = true;   // stop watching
-        break;
-    case 'txUpdated':
-        updates.push(msg.data);
-        stop = false;
-        break;
-    default:
-        logger.warn('Unknown message type: ' + msg.type);
-        stop = false;
-        break;
+    switch (msg.type) {
+        case 'testResult':
+            results.push(msg.data);
+            stop = true;   // stop watching
+            break;
+        case 'error':
+            logger.error('Client encountered error, ' + msg.data);
+            stop = true;   // stop watching
+            break;
+        case 'txUpdated':
+            updates.push(msg.data);
+            stop = false;
+            break;
+        default:
+            logger.warn('Unknown message type: ' + msg.type);
+            stop = false;
+            break;
     }
     return Promise.resolve(stop);
 }
@@ -59,13 +59,13 @@ function zooMessageCallback(data, updates, results) {
  */
 function zooStartWatch(zoo, updates, results) {
     let promises = [];
-    let zk   = zoo.zk;
-    zoo.hosts.forEach((host)=>{
+    let zk = zoo.zk;
+    zoo.hosts.forEach((host) => {
         let path = host.outnode;
         let p = zkUtil.watchMsgQueueP(
             zk,
             path,
-            (data)=>{
+            (data) => {
                 return zooMessageCallback(data, updates, results).catch((err) => {
                     logger.error('Exception encountered when watching message from zookeeper, due to:' + err);
                     return Promise.resolve(true);
@@ -81,7 +81,7 @@ function zooStartWatch(zoo, updates, results) {
 /**
  * Class for test client
  */
-class Client{
+class Client {
     /**
      * Constructor
      * @param {String} config path of the configuration file
@@ -91,7 +91,7 @@ class Client{
         let conf = util.parseYaml(config);
         this.config = conf.test.clients;
         this.results = [];                        // output of recent test round
-        this.updates = {id:0, data:[]};           // contains txUpdated messages
+        this.updates = { id: 0, data: [] };           // contains txUpdated messages
     }
 
     /**
@@ -99,21 +99,21 @@ class Client{
     * @return {Promise} promise object
     */
     async init() {
-        if(this.config.hasOwnProperty('type')) {
-            switch(this.config.type) {
-            case CLIENT_LOCAL:
-                this.type = CLIENT_LOCAL;
-                if(this.config.hasOwnProperty('number')) {
-                    this.number = this.config.number;
-                }
-                else {
-                    this.number = 1;
-                }
-                return this.number;
-            case CLIENT_ZOO:
-                return await this._initZoo();
-            default:
-                throw new Error('Unknown client type, should be local or zookeeper');
+        if (this.config.hasOwnProperty('type')) {
+            switch (this.config.type) {
+                case CLIENT_LOCAL:
+                    this.type = CLIENT_LOCAL;
+                    if (this.config.hasOwnProperty('number')) {
+                        this.number = this.config.number;
+                    }
+                    else {
+                        this.number = 1;
+                    }
+                    return this.number;
+                case CLIENT_ZOO:
+                    return await this._initZoo();
+                default:
+                    throw new Error('Unknown client type, should be local or zookeeper');
             }
         }
         else {
@@ -144,15 +144,15 @@ class Client{
         this.updates.data = [];
         this.updates.id++;
 
-        switch(this.type) {
-        case CLIENT_LOCAL:
-            await this._startLocalTest(message, clientArgs);
-            break;
-        case CLIENT_ZOO:
-            await this._startZooTest(message, clientArgs);
-            break;
-        default:
-            throw new Error(`Unknown client type: ${this.type}`);
+        switch (this.type) {
+            case CLIENT_LOCAL:
+                await this._startLocalTest(message, clientArgs);
+                break;
+            case CLIENT_ZOO:
+                await this._startZooTest(message, clientArgs);
+                break;
+            default:
+                throw new Error(`Unknown client type: ${this.type}`);
         }
 
         await finishCB(this.results, finishArgs);
@@ -162,15 +162,15 @@ class Client{
      * Stop the client
      */
     stop() {
-        switch(this.type) {
-        case CLIENT_ZOO:
-            this._stopZoo();
-            break;
-        case CLIENT_LOCAL:
-            clientUtil.stop();
-            break;
-        default:
-                 // nothing to do
+        switch (this.type) {
+            case CLIENT_ZOO:
+                this._stopZoo();
+                break;
+            case CLIENT_LOCAL:
+                clientUtil.stop();
+                break;
+            default:
+            // nothing to do
         }
     }
 
@@ -195,7 +195,25 @@ class Client{
      */
     async _startLocalTest(message, clientArgs) {
         message.totalClients = this.number;
-        return await clientUtil.startTest(this.number, message, clientArgs, this.updates.data, this.results);
+        let res = await clientUtil.startTest(this.number, message, clientArgs, this.updates.data, this.results);
+        // logger.info('results:', JSON.stringify(this.results, null, 2));
+        let fs = require('fs');
+        let path = require('path');
+        let result_path = path.join(process.cwd(), 'transaction_results.json');
+        let update_path = path.join(process.cwd(), 'transaction_updates.json');
+        fs.appendFile(result_path, JSON.stringify(this.results, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+        fs.appendFile(update_path, JSON.stringify(this.updates.data, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+
+        // logger.info('updates data:', JSON.stringify(this.updates.data, null, 2));
+        return res;
     }
 
     /**
@@ -221,45 +239,45 @@ class Client{
     _initZoo() {
         const TIMEOUT = 5000;
         this.type = CLIENT_ZOO;
-        this.zoo  = {
+        this.zoo = {
             server: '',
             zk: null,
             hosts: [],    // {id, innode, outnode}
             clientsPerHost: 1
         };
 
-        if(!this.config.hasOwnProperty('zoo')) {
+        if (!this.config.hasOwnProperty('zoo')) {
             return Promise.reject('Failed to find zoo property in config file');
         }
 
         let configZoo = this.config.zoo;
-        if(configZoo.hasOwnProperty('server')) {
+        if (configZoo.hasOwnProperty('server')) {
             this.zoo.server = configZoo.server;
         }
         else {
             return Promise.reject(new Error('Failed to find zookeeper server address in config file'));
         }
-        if(configZoo.hasOwnProperty('clientsPerHost')) {
+        if (configZoo.hasOwnProperty('clientsPerHost')) {
             this.zoo.clientsPerHost = configZoo.clientsPerHost;
         }
 
         let zk = ZooKeeper.createClient(this.zoo.server, {
             sessionTimeout: TIMEOUT,
-            spinDelay : 1000,
+            spinDelay: 1000,
             retries: 0
         });
         this.zoo.zk = zk;
         let zoo = this.zoo;
-        let connectHandle = setTimeout(()=>{
+        let connectHandle = setTimeout(() => {
             logger.error('Could not connect to ZooKeeper');
             Promise.reject('Could not connect to ZooKeeper');
-        }, TIMEOUT+100);
+        }, TIMEOUT + 100);
         let p = new Promise((resolve, reject) => {
             zk.once('connected', () => {
                 logger.info('Connected to ZooKeeper');
                 clearTimeout(connectHandle);
-                zkUtil.existsP(zk, zkUtil.NODE_CLIENT, 'Failed to find clients due to').then((found)=>{
-                    if(!found) {
+                zkUtil.existsP(zk, zkUtil.NODE_CLIENT, 'Failed to find clients due to').then((found) => {
+                    if (!found) {
                         // since zoo-client(s) should create the node if it does not exist,no caliper node means no valid zoo-client now.
                         throw new Error('Could not found clients node in zookeeper');
                     }
@@ -272,16 +290,16 @@ class Client{
                 }).then((clients) => {
                     // TODO: not support add/remove zookeeper clients now
                     logger.info('get zookeeper clients:' + clients);
-                    for (let i = 0 ; i < clients.length ; i++) {
+                    for (let i = 0; i < clients.length; i++) {
                         let clientID = clients[i];
                         zoo.hosts.push({
                             id: clientID,
                             innode: zkUtil.getInNode(clientID),
-                            outnode:zkUtil.getOutNode(clientID)
+                            outnode: zkUtil.getOutNode(clientID)
                         });
                     }
                     resolve(clients.length * zoo.clientsPerHost);
-                }).catch((err)=>{
+                }).catch((err) => {
                     zk.close();
                     return reject(err);
                 });
@@ -302,8 +320,8 @@ class Client{
         let number = this.zoo.hosts.length;
         if (message.numb) {
             // Run specified number of transactions
-            message.numb  = Math.floor(message.numb / number);
-            if(message.numb < 1) {
+            message.numb = Math.floor(message.numb / number);
+            if (message.numb < 1) {
                 message.numb = 1;
             }
             // trim should be based on client number if specified with txNumber
@@ -319,14 +337,14 @@ class Client{
 
         message.clients = this.zoo.clientsPerHost;
         message.totalClients = this.zoo.clientsPerHost * number;
-        return this._sendZooMessage(message, clientArgs).then((number)=>{
-            if(number > 0) {
-                return zooStartWatch(this.zoo, this.updates.data,  this.results);
+        return this._sendZooMessage(message, clientArgs).then((number) => {
+            if (number > 0) {
+                return zooStartWatch(this.zoo, this.updates.data, this.results);
             }
             else {
                 return Promise.reject(new Error('Failed to start the remote test'));
             }
-        }).catch((err)=>{
+        }).catch((err) => {
             logger.error('Failed to start the remote test');
             return Promise.reject(err);
         });
@@ -342,32 +360,32 @@ class Client{
         let promises = [];
         let succ = 0;
         let argsSlice, msgBuffer;
-        if(Array.isArray(clientArgs)) {
+        if (Array.isArray(clientArgs)) {
             argsSlice = clientArgs.length / this.zoo.hosts.length;
         }
         else {
             msgBuffer = new Buffer(JSON.stringify(message));
         }
-        this.zoo.hosts.forEach((host, idx)=>{
+        this.zoo.hosts.forEach((host, idx) => {
             let data;
-            if(Array.isArray(clientArgs)) {
+            if (Array.isArray(clientArgs)) {
                 let msg = message;
-                msg.clientargs = clientArgs.slice(idx * argsSlice, idx * argsSlice+argsSlice);
+                msg.clientargs = clientArgs.slice(idx * argsSlice, idx * argsSlice + argsSlice);
                 data = new Buffer(JSON.stringify(msg));
             }
             else {
                 data = msgBuffer;
             }
 
-            let p = zkUtil.createP(this.zoo.zk, host.innode+'/msg_', data, ZooKeeper.CreateMode.EPHEMERAL_SEQUENTIAL, 'Failed to send message (create node) due to').then((path)=>{
+            let p = zkUtil.createP(this.zoo.zk, host.innode + '/msg_', data, ZooKeeper.CreateMode.EPHEMERAL_SEQUENTIAL, 'Failed to send message (create node) due to').then((path) => {
                 succ++;
                 return Promise.resolve();
-            }).catch((err)=>{
+            }).catch((err) => {
                 return Promise.resolve();
             });
             promises.push(p);
         });
-        return Promise.all(promises).then(()=>{
+        return Promise.all(promises).then(() => {
             return Promise.resolve(succ);
         });
     }
@@ -376,10 +394,10 @@ class Client{
      * Stop the client
      */
     _stopZoo() {
-        if(this.zoo && this.zoo.zk) {
-            let msg = {type: 'quit'};
-            this._sendZooMessage(msg).then(()=>{
-                setTimeout(()=>{
+        if (this.zoo && this.zoo.zk) {
+            let msg = { type: 'quit' };
+            this._sendZooMessage(msg).then(() => {
+                setTimeout(() => {
                     this.zoo.zk.close();
                     this.zoo.hosts = [];
                 }, 1000);
