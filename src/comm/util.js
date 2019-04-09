@@ -84,10 +84,10 @@ class Util {
             throw new Error('Util.parseYaml: the name or path of a file is undefined');
         }
 
-        try{
-            return yaml.safeLoad(fs.readFileSync(filenameOrFilepath),'utf8');
+        try {
+            return yaml.safeLoad(fs.readFileSync(filenameOrFilepath), 'utf8');
         }
-        catch(err) {
+        catch (err) {
             throw new Error(`Failed to parse the ${filenameOrFilepath}: ${(err.message || err)}`);
         }
     }
@@ -102,10 +102,10 @@ class Util {
             throw new Error('Util.parseYaml: stringContent parameter is undefined or empty');
         }
 
-        try{
+        try {
             return yaml.safeLoad(stringContent);
         }
-        catch(err) {
+        catch (err) {
             throw new Error(`Failed to parse the YAML string: ${(err.message || err)}`);
         }
     }
@@ -211,6 +211,23 @@ class Util {
             Util.assertProperty(object, objectName, property);
         }
     }
+    /**
+     *
+     *
+     * @static
+     * @param {string} reportName The name of the report
+     * @param {object} data The data which will be turned into a json.
+     * @memberof Util
+     */
+    static appendToFile(reportName, data) {
+        let result_path = path.join(process.cwd(), '/reports/', reportName);
+        fs.appendFile(result_path, JSON.stringify(data, null, 2), (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+    }
 }
 
 module.exports = Util;
+

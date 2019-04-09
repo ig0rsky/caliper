@@ -377,9 +377,8 @@ module.exports.run = async function (configFile, networkFile) {
         monitor.printMaxStats();
         await monitor.stop();
 
-        let date = new Date().toISOString().replace(/-/g, '').replace(/:/g, '').substr(0, 15);
-        let output = path.join(process.cwd(), `report-${date}.html`);
-        let outputJson = path.join(process.cwd(), `report-${date}.json`);
+        let output = path.join(process.cwd(), '/reports/report.html');
+        let outputJson = path.join(process.cwd(), '/reports/report.json');
         await report.generate(output, false);
         await report.generate(outputJson, true);
         logger.info(`Generated report at ${output}`);

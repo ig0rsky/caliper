@@ -21,8 +21,6 @@ module.exports.init = function (blockchain, context, args) {
 };
 
 module.exports.run = function () {
-    let fs = require('fs');
-    let path = require('path');
     const util = require('../../src/comm/util');
     const logger = util.getLogger('query.js');
     let acc_num = accounts[Math.floor(Math.random() * (accounts.length))];
@@ -32,14 +30,9 @@ module.exports.run = function () {
             chaincodeArguments: [acc_num.toString()],
         };
         let txStatusPromise = bc.bcObj.querySmartContract(contx, 'smallbank', '1.0', args, 3);
-        let outputJson = path.join(process.cwd(), 'transactions.json');
         txStatusPromise.then((txStatuses) => {
             // logger.info(JSON.stringify(txStatuses, null, 2));
-            fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
-                if (err) {
-                    throw err;
-                }
-            });
+            util.appendToFile('smallbank_query_tx.json', txStatuses);
         }).catch((error) => {
             logger.info(error);
         })
@@ -47,17 +40,12 @@ module.exports.run = function () {
     } else {
         // NOTE: the query API is inconsistent with the invoke API
         let txStatusPromise = bc.queryState(contx, 'smallbank', '1.0', acc_num);
-        let outputJson = path.join(process.cwd(), 'smallbank_query_tx.json');
         txStatusPromise.then((txStatuses) => {
             // logger.info(JSON.stringify(txStatuses, null, 2));
-            fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
-                if (err) {
-                    throw err;
-                }
-            });
+            util.appendToFile('smallbank_query_tx.json', txStatuses);
         }).catch((error) => {
-            logger.info(error);
-        })
+            logger.error(error);
+        });
         return txStatusPromise;
     }
 };

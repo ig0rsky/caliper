@@ -184,21 +184,14 @@ module.exports.run = function () {
 
         args = ccpArgs;
     }
-    let fs = require('fs');
-    let path = require('path');
     const util = require('../../src/comm/util');
     const logger = util.getLogger('query.js');
     let txStatusPromise = bc.invokeSmartContract(contx, 'smallbank', '1.0', args, 30);
-    let outputJson = path.join(process.cwd(), 'smallbank_ops_tx.json');
     txStatusPromise.then((txStatuses) => {
-        fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
-            if (err) {
-                throw err;
-            }
-        });
+        util.appendToFile('smallbank_ops_tx.json', txStatuses);
     }).catch((error) => {
-        logger.info(error);
-    })
+        logger.error(error);
+    });
     return txStatusPromise;
 
 };
