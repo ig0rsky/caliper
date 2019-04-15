@@ -84,23 +84,16 @@ function generateWorkload() {
 }
 
 module.exports.run = function () {
-    let fs = require('fs');
-    let path = require('path');
     const util = require('../../src/comm/util');
     const logger = util.getLogger('query.js');
     let args = generateWorkload();
     let txStatusPromise = bc.invokeSmartContract(contx, 'simple', 'v0', args, 100);
-    let outputJson = path.join(process.cwd(), 'transactions.json');
     txStatusPromise.then((txStatuses) => {
-        logger.info(JSON.stringify(txStatuses, null, 2));
-        fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
-            if (err) {
-                throw err;
-            }
-        });
+        // logger.info(JSON.stringify(txStatuses, null, 2));
+        util.appendToFile('simple_open_tx.json', txStatuses);
     }).catch((error) => {
         logger.info(error);
-    })
+    });
     return txStatusPromise;
 };
 

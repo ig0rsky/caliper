@@ -14,19 +14,21 @@
 
 'use strict';
 
-module.exports.info  = 'Querying marbles.';
+module.exports.info = 'Querying marbles.';
 
 let txIndex = 0;
 let owners = ['Alice', 'Bob', 'Claire', 'David'];
 let bc, contx;
-module.exports.init = function(blockchain, context, args) {
+module.exports.init = function (blockchain, context, args) {
     bc = blockchain;
     contx = context;
 
     return Promise.resolve();
 };
 
-module.exports.run = function() {
+module.exports.run = function () {
+    const util = require('../../src/comm/util');
+    const logger = util.getLogger('init.js');
     txIndex++;
     let marbleOwner = owners[txIndex % owners.length];
     let args;
@@ -44,9 +46,15 @@ module.exports.run = function() {
     }
 
     // TODO: until Fabric query is implemented, use invoke
-    return bc.invokeSmartContract(contx, 'marbles', 'v1', args, 120);
+    let txStatusPromise = bc.invokeSmartContract(contx, 'marbles', 'v1', args, 120);
+    txStatusPromise.then((txStatuses) => {
+        util.appendToFile('marble_query_tx.json', txStatuses);
+    }).catch((error) => {
+        logger.info(error);
+    });
+    return txStatusPromise;
 };
 
-module.exports.end = function() {
+module.exports.end = function () {
     return Promise.resolve();
 };

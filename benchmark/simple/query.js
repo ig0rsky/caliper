@@ -24,8 +24,6 @@ module.exports.init = function (blockchain, context, args) {
 
 
 module.exports.run = function () {
-    let fs = require('fs');
-    let path = require('path');
     const util = require('../../src/comm/util');
     const logger = util.getLogger('query.js');
     const acc = account_array[Math.floor(Math.random() * (account_array.length))];
@@ -36,14 +34,9 @@ module.exports.run = function () {
             chaincodeArguments: [acc],
         };
         let txStatusPromise = bc.bcObj.querySmartContract(contx, 'simple', 'v0', args, 10);
-        let outputJson = path.join(process.cwd(), 'transactions.json');
         txStatusPromise.then((txStatuses) => {
-            logger.info(JSON.stringify(txStatuses, null, 2));
-            fs.appendFile(outputJson, JSON.stringify(txStatuses, null, 2), (err) => {
-                if (err) {
-                    throw err;
-                }
-            });
+            // logger.info(JSON.stringify(txStatuses, null, 2));
+            util.appendToFile('simple_query_tx.json', txStatuses);
         }).catch((error) => {
             logger.info(error);
         })

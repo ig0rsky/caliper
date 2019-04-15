@@ -14,21 +14,23 @@
 
 'use strict';
 
-module.exports.info  = 'Creating marbles.';
+module.exports.info = 'Creating marbles.';
 
 let txIndex = 0;
 let colors = ['red', 'blue', 'green', 'black', 'white', 'pink', 'rainbow'];
 let owners = ['Alice', 'Bob', 'Claire', 'David'];
 let bc, contx;
 
-module.exports.init = function(blockchain, context, args) {
+module.exports.init = function (blockchain, context, args) {
     bc = blockchain;
     contx = context;
 
     return Promise.resolve();
 };
 
-module.exports.run = function() {
+module.exports.run = function () {
+    const util = require('../../src/comm/util');
+    const logger = util.getLogger('init.js');
     txIndex++;
     let marbleName = 'marble_' + txIndex.toString() + '_' + process.pid.toString();
     let marbleColor = colors[txIndex % colors.length];
@@ -51,9 +53,15 @@ module.exports.run = function() {
         };
     }
 
-    return bc.invokeSmartContract(contx, 'marbles', 'v1', args, 30);
+    let txStatusPromise = bc.invokeSmartContract(contx, 'marbles', 'v1', args, 30);
+    txStatusPromise.then((txStatuses) => {
+        util.appendToFile('marbles_init_tx.json', txStatuses);
+    }).catch((error) => {
+        logger.info(error);
+    });
+    return txStatusPromise;
 };
 
-module.exports.end = function() {
+module.exports.end = function () {
     return Promise.resolve();
 };
