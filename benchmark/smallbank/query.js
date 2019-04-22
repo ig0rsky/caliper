@@ -34,7 +34,7 @@ module.exports.run = function () {
             // logger.info(JSON.stringify(txStatuses, null, 2));
             util.appendToFile('smallbank_query_tx.json', txStatuses);
         }).catch((error) => {
-            logger.info(error);
+            logger.error(error);
         })
         return txStatusPromise;
     } else {

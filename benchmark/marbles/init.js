@@ -57,7 +57,7 @@ module.exports.run = function () {
     txStatusPromise.then((txStatuses) => {
         util.appendToFile('marbles_init_tx.json', txStatuses);
     }).catch((error) => {
-        logger.info(error);
+        logger.error(error);
     });
     return txStatusPromise;
 };

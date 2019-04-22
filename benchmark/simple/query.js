@@ -38,13 +38,20 @@ module.exports.run = function () {
             // logger.info(JSON.stringify(txStatuses, null, 2));
             util.appendToFile('simple_query_tx.json', txStatuses);
         }).catch((error) => {
-            logger.info(error);
+            logger.error(error);
         })
         return txStatusPromise;
 
     } else {
         // NOTE: the query API is not consistent with the invoke API
-        return bc.queryState(contx, 'simple', 'v0', acc);
+        let txStatusPromise = bc.queryState(contx, 'simple', 'v0', acc);
+        txStatusPromise.then((txStatuses) => {
+            // logger.info(JSON.stringify(txStatuses, null, 2));
+            util.appendToFile('simple_query_tx.json', txStatuses);
+        }).catch((error) => {
+            logger.error(error);
+        })
+        return txStatusPromise;
     }
 };
 
