@@ -72,8 +72,8 @@
     ],
     "chaincodes": [
       {
-        "id": "smallbank",
-        "path": "contract/fabric/smallbank",
+        "id": "simple",
+        "path": "contract/fabric/simple/go",
         "language": "golang",
         "version": "v0",
         "channel": "mychannel"

@@ -8,6 +8,8 @@
 'use strict';
 
 module.exports.info = 'querying accounts';
+const util = require('../../src/comm/util');
+const logger = util.getLogger('benchmark/simple/query.js');
 
 
 let bc, contx;
@@ -24,8 +26,6 @@ module.exports.init = function (blockchain, context, args) {
 
 
 module.exports.run = function () {
-    const util = require('../../src/comm/util');
-    const logger = util.getLogger('query.js');
     const acc = account_array[Math.floor(Math.random() * (account_array.length))];
 
     if (bc.bcType === 'fabric-ccp') {
@@ -39,7 +39,7 @@ module.exports.run = function () {
             util.appendToFile('simple_query_tx.json', txStatuses);
         }).catch((error) => {
             logger.error(error);
-        })
+        });
         return txStatusPromise;
 
     } else {
@@ -47,10 +47,11 @@ module.exports.run = function () {
         let txStatusPromise = bc.queryState(contx, 'simple', 'v0', acc);
         txStatusPromise.then((txStatuses) => {
             // logger.info(JSON.stringify(txStatuses, null, 2));
-            util.appendToFile('simple_query_tx.json', txStatuses);
+            // util.appendToFile('simple_query_tx.json', txStatuses);
+            util.appendToFile('simple_query_tx.json', [txStatuses]);
         }).catch((error) => {
             logger.error(error);
-        })
+        });
         return txStatusPromise;
     }
 };

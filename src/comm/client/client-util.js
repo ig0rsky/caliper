@@ -40,6 +40,7 @@ function pushResult(pid, data) {
     let p = processes[pid];
     if (p && p.results && typeof p.results !== 'undefined') {
         p.results.push(data);
+        // console.log('update data:', data);
     }
 }
 

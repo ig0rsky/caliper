@@ -52,6 +52,7 @@ class TxStatus {
         this.status.id = id;
     }
 
+
     /**
      * Getter of the tx's status
      * @return {string}, status

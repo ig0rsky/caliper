@@ -20,6 +20,7 @@ const yaml = require('js-yaml');
 // comm --> src --> root
 const rootDir = path.join('..', '..');
 const loggingUtil = require('./logging-util.js');
+let history = []
 
 /**
  * Internal Utility class for Caliper
@@ -86,6 +87,24 @@ class Util {
 
         try {
             return yaml.safeLoad(fs.readFileSync(filenameOrFilepath), 'utf8');
+        }
+        catch (err) {
+            throw new Error(`Failed to parse the ${filenameOrFilepath}: ${(err.message || err)}`);
+        }
+    }
+
+    /**
+     * parse a yaml file.
+     * @param {String} filenameOrFilepath the yaml file path
+     * @return {object} the parsed data.
+     */
+    static dumpYaml(obj, filenameOrFilepath) {
+        if (!filenameOrFilepath) {
+            throw new Error('Util.dumpYaml: the name or path of a file is undefined');
+        }
+
+        try {
+            return fs.writeFileSync(filenameOrFilepath, yaml.safeDump(obj))
         }
         catch (err) {
             throw new Error(`Failed to parse the ${filenameOrFilepath}: ${(err.message || err)}`);
@@ -215,13 +234,38 @@ class Util {
      *
      *
      * @static
+     * @param {*} inputMap
+     * @returns
+     * @memberof Util
+     */
+    static mapToObj(inputMap) {
+        let obj = {};
+
+        inputMap.forEach(function (value, key) {
+            obj[key] = value;
+        });
+
+        return obj;
+    }
+
+    /**
+     *
+     *
+     * @static
      * @param {string} reportName The name of the report
      * @param {object} data The data which will be turned into a json.
      * @memberof Util
      */
     static appendToFile(reportName, data) {
         let result_path = path.join(process.cwd(), '/reports/', reportName);
-        fs.appendFile(result_path, JSON.stringify(data, null, 2), (err) => {
+        const replacer = (k, v) => {
+            if (v instanceof Map) {
+                return Util.mapToObj(v);
+            } else {
+                return v;
+            }
+        };
+        fs.appendFile(result_path, JSON.stringify(data, replacer, 2), (err) => {
             if (err) {
                 throw err;
             }

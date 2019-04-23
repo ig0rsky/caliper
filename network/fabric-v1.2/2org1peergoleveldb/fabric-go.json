@@ -1,9 +1,9 @@
 {
   "caliper": {
     "blockchain": "fabric",
-    "command" : {
+    "command": {
       "start": "docker-compose -f network/fabric-v1.2/2org1peergoleveldb/docker-compose.yaml up -d;sleep 3s",
-      "end" : "docker-compose -f network/fabric-v1.2/2org1peergoleveldb/docker-compose.yaml down;docker rm $(docker ps -aq);docker rmi $(docker images dev* -q)"
+      "end": "docker-compose -f network/fabric-v1.2/2org1peergoleveldb/docker-compose.yaml down;docker rm $(docker ps -aq);docker rmi $(docker images dev* -q)"
     }
   },
   "fabric": {
@@ -52,14 +52,20 @@
         "name": "mychannel",
         "deployed": false,
         "config": "network/fabric-v1.2/config/mychannel.tx",
-        "organizations": ["org1", "org2"]
+        "organizations": [
+          "org1",
+          "org2"
+        ]
       }
     ],
     "chaincodes": [
-      {"id": "drm", "path": "contract/fabric/drm", "language":"golang", "version": "v0", "channel": "mychannel"},
-      {"id": "marbles", "path": "contract/fabric/marbles-norichquery/go", "language":"golang", "version": "v1", "channel": "mychannel"},
-      {"id": "simple", "path": "contract/fabric/simple/go", "language":"golang", "version": "v0", "channel": "mychannel"},
-      {"id": "smallbank", "path": "contract/fabric/smallbank", "language":"golang", "version": "v0", "channel": "mychannel"}
+      {
+        "id": "simple",
+        "path": "contract/fabric/simple/go",
+        "language": "golang",
+        "version": "v0",
+        "channel": "mychannel"
+      }
     ],
     "endorsement-policy": {
       "identities": [
@@ -82,7 +88,16 @@
           }
         }
       ],
-      "policy": { "2-of": [{"signed-by": 0}, {"signed-by": 1}]}
+      "policy": {
+        "2-of": [
+          {
+            "signed-by": 0
+          },
+          {
+            "signed-by": 1
+          }
+        ]
+      }
     },
     "context": {
       "smallOperations": "mychannel",
@@ -92,7 +107,7 @@
       "query": "mychannel"
     }
   },
-  "info" : {
+  "info": {
     "Version": "1.2.0",
     "Size": "2 Orgs with 1 Peer",
     "Orderer": "Solo",

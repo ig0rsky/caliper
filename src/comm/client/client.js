@@ -196,7 +196,7 @@ class Client {
     async _startLocalTest(message, clientArgs) {
         message.totalClients = this.number;
         let res = await clientUtil.startTest(this.number, message, clientArgs, this.updates.data, this.results);
-        util.appendToFile('test_results.json', this.results);
+        // util.appendToFile('test_results.json', this.results);
         // logger.info('updates data:', JSON.stringify(this.updates.data, null, 2));
         return res;
     }

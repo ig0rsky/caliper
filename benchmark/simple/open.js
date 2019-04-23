@@ -9,6 +9,8 @@
 
 module.exports.info = 'opening accounts';
 
+const util = require('../../src/comm/util');
+const logger = util.getLogger('/benchmark/simple/open.js');
 let account_array = [];
 let txnPerBatch;
 let initMoney;
@@ -84,15 +86,12 @@ function generateWorkload() {
 }
 
 module.exports.run = function () {
-    const util = require('../../src/comm/util');
-    const logger = util.getLogger('query.js');
     let args = generateWorkload();
     let txStatusPromise = bc.invokeSmartContract(contx, 'simple', 'v0', args, 100);
     txStatusPromise.then((txStatuses) => {
-        // logger.info(JSON.stringify(txStatuses, null, 2));
         util.appendToFile('simple_open_tx.json', txStatuses);
     }).catch((error) => {
-        logger.info(error);
+        logger.error(error);
     });
     return txStatusPromise;
 };

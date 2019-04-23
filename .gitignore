@@ -35,3 +35,4 @@ zookeeper.out
 .sass-cache/
 Gemfile.lock
 _site/
+reports/
