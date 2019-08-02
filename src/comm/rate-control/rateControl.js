@@ -26,7 +26,6 @@ const builtInControllers = new Map([
     ['replay-rate', './replayRate.js'],
     ['linear-rate', './linearRate.js'],
     ['fixed-feedback-rate', './fixedFeedbackRate.js']
-    ['fixed-backlog', './fixedBacklog.js']
 ]);
 
 let RateControl = class {
