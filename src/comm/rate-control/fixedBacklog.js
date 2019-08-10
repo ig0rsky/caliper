@@ -53,7 +53,7 @@ class FixedBacklog extends RateInterface {
 
         // Waiting until successful transactions occur.
         if (resultStats.length < 2 || !resultStats[0].succ || !resultStats[0].delay) {
-            await util.sleep(this.sleep_time);
+            await util.sleep(100);
             return;
         }
 
